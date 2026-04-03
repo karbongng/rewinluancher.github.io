@@ -42,8 +42,8 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .success { color: #4CAF50; }
-        .error { color: #f44336; }
+        .success { color: #4CAF50; font-size: 48px; }
+        .error { color: #f44336; font-size: 48px; }
         .info { color: #FF6B6B; }
         .button {
             background: #5865F2;
@@ -58,6 +58,15 @@
         .button:hover {
             background: #4752C4;
         }
+        code {
+            background: #1A1A1A;
+            padding: 10px;
+            display: block;
+            margin: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -70,50 +79,53 @@
     </div>
 
     <script>
-        // Parse the URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const error = urlParams.get('error');
 
-        if (error) {
-            // Show error message
-            document.getElementById('status').innerHTML = `
-                <div class="error">❌</div>
-                <p class="error">Discord authentication failed: ${error}</p>
-                <p>Please close this window and try again.</p>
-                <button class="button" onclick="window.close()">Close Window</button>
-            `;
-        } else if (code) {
-            // Success! Redirect back to launcher with the code
-            document.getElementById('status').innerHTML = `
-                <div class="success">✓</div>
-                <p class="success">Authentication successful!</p>
-                <p>Redirecting back to Rewin Launcher...</p>
-            `;
-            
-            // Redirect to custom protocol
-            setTimeout(() => {
-                window.location.href = `rewinlauncher://auth/callback?code=${code}`;
-            }, 1000);
-            
-            // Fallback for if custom protocol isn't registered
-            setTimeout(() => {
-                document.getElementById('status').innerHTML = `
-                    <div class="info">⚠️</div>
-                    <p>If the launcher doesn't open automatically, please make sure Rewin Launcher is installed.</p>
-                    <p>You can manually copy this code and paste it in the launcher:</p>
-                    <code style="background:#1A1A1A; padding:10px; display:block; margin:10px; border-radius:5px;">${code}</code>
+        function updateStatus(type, message) {
+            const statusDiv = document.getElementById('status');
+            if (type === 'success') {
+                statusDiv.innerHTML = `
+                    <div class="success">✓</div>
+                    <p class="success">${message}</p>
+                    <p>Redirecting to Rewin Launcher...</p>
+                `;
+            } else if (type === 'error') {
+                statusDiv.innerHTML = `
+                    <div class="error">✗</div>
+                    <p class="error">${message}</p>
                     <button class="button" onclick="window.close()">Close Window</button>
                 `;
-            }, 3000);
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="info">⚠️</div>
+                    <p>${message}</p>
+                    <button class="button" onclick="window.close()">Close Window</button>
+                `;
+            }
+        }
+
+        if (error) {
+            updateStatus('error', `Discord authentication failed: ${error}`);
+        } else if (code) {
+            updateStatus('success', 'Authentication successful!');
+            
+            // Try multiple methods to open the launcher
+            setTimeout(() => {
+                // Method 1: Custom protocol
+                window.location.href = `rewinlauncher://auth/callback?code=${code}`;
+                
+                // Method 2: Try to find the launcher process
+                setTimeout(() => {
+                    updateStatus('info', 'If launcher doesn\'t open automatically, please copy this code and paste it in the launcher:');
+                    const codeElement = document.createElement('code');
+                    codeElement.textContent = code;
+                    document.getElementById('status').appendChild(codeElement);
+                }, 2000);
+            }, 1000);
         } else {
-            // No code parameter - this shouldn't happen
-            document.getElementById('status').innerHTML = `
-                <div class="error">❌</div>
-                <p class="error">No authorization code received.</p>
-                <p>Please go back to Rewin Launcher and try again.</p>
-                <button class="button" onclick="window.close()">Close Window</button>
-            `;
+            updateStatus('error', 'No authorization code received.');
         }
     </script>
 </body>

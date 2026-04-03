@@ -44,7 +44,6 @@
         }
         .success { color: #4CAF50; font-size: 48px; }
         .error { color: #f44336; font-size: 48px; }
-        .info { color: #FF6B6B; }
         .button {
             background: #5865F2;
             color: white;
@@ -67,6 +66,21 @@
             font-size: 12px;
             word-break: break-all;
         }
+        .manual-input {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1A1A1A;
+            border-radius: 8px;
+        }
+        input {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            width: 80%;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -83,18 +97,30 @@
         const code = urlParams.get('code');
         const error = urlParams.get('error');
 
-        function updateStatus(type, message) {
+        function updateStatus(type, message, showManual = false, codeValue = null) {
             const statusDiv = document.getElementById('status');
             if (type === 'success') {
                 statusDiv.innerHTML = `
                     <div class="success">✓</div>
                     <p class="success">${message}</p>
-                    <p>Redirecting to Rewin Launcher...</p>
+                    <p>Attempting to open Rewin Launcher...</p>
+                    <div class="spinner"></div>
                 `;
             } else if (type === 'error') {
                 statusDiv.innerHTML = `
                     <div class="error">✗</div>
                     <p class="error">${message}</p>
+                    <button class="button" onclick="window.close()">Close Window</button>
+                `;
+            } else if (showManual && codeValue) {
+                statusDiv.innerHTML = `
+                    <div class="info">⚠️</div>
+                    <p>${message}</p>
+                    <div class="manual-input">
+                        <p>Copy this code and paste it in the launcher:</p>
+                        <code>${codeValue}</code>
+                        <button class="button" onclick="navigator.clipboard.writeText('${codeValue}')">Copy Code</button>
+                    </div>
                     <button class="button" onclick="window.close()">Close Window</button>
                 `;
             } else {
@@ -116,12 +142,9 @@
                 // Method 1: Custom protocol
                 window.location.href = `rewinlauncher://auth/callback?code=${code}`;
                 
-                // Method 2: Try to find the launcher process
+                // Method 2: Try to focus existing window
                 setTimeout(() => {
-                    updateStatus('info', 'If launcher doesn\'t open automatically, please copy this code and paste it in the launcher:');
-                    const codeElement = document.createElement('code');
-                    codeElement.textContent = code;
-                    document.getElementById('status').appendChild(codeElement);
+                    updateStatus('info', 'If launcher doesn\'t open automatically, please copy this code:', true, code);
                 }, 2000);
             }, 1000);
         } else {

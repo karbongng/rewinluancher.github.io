@@ -1,14 +1,120 @@
-<!-- Save as https://yourusername.github.io/discord-auth.html -->
 <!DOCTYPE html>
-<html>
-<head><title>Discord Auth</title></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewin Launcher - Discord Authentication</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: #252525;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 500px;
+        }
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FF6B6B;
+            margin-bottom: 20px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-radius: 50%;
+            border-top-color: #FF6B6B;
+            animation: spin 1s ease-in-out infinite;
+            margin: 20px 0;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #FF6B6B; }
+        .button {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #4752C4;
+        }
+    </style>
+</head>
 <body>
-<script>
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (code) {
-        window.location.href = `rewinlauncher://auth/callback?code=${code}`;
-    }
-</script>
+    <div class="container">
+        <div class="logo">REWIN LAUNCHER</div>
+        <div id="status">
+            <div class="spinner"></div>
+            <p>Authenticating with Discord...</p>
+        </div>
+    </div>
+
+    <script>
+        // Parse the URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+
+        if (error) {
+            // Show error message
+            document.getElementById('status').innerHTML = `
+                <div class="error">❌</div>
+                <p class="error">Discord authentication failed: ${error}</p>
+                <p>Please close this window and try again.</p>
+                <button class="button" onclick="window.close()">Close Window</button>
+            `;
+        } else if (code) {
+            // Success! Redirect back to launcher with the code
+            document.getElementById('status').innerHTML = `
+                <div class="success">✓</div>
+                <p class="success">Authentication successful!</p>
+                <p>Redirecting back to Rewin Launcher...</p>
+            `;
+            
+            // Redirect to custom protocol
+            setTimeout(() => {
+                window.location.href = `rewinlauncher://auth/callback?code=${code}`;
+            }, 1000);
+            
+            // Fallback for if custom protocol isn't registered
+            setTimeout(() => {
+                document.getElementById('status').innerHTML = `
+                    <div class="info">⚠️</div>
+                    <p>If the launcher doesn't open automatically, please make sure Rewin Launcher is installed.</p>
+                    <p>You can manually copy this code and paste it in the launcher:</p>
+                    <code style="background:#1A1A1A; padding:10px; display:block; margin:10px; border-radius:5px;">${code}</code>
+                    <button class="button" onclick="window.close()">Close Window</button>
+                `;
+            }, 3000);
+        } else {
+            // No code parameter - this shouldn't happen
+            document.getElementById('status').innerHTML = `
+                <div class="error">❌</div>
+                <p class="error">No authorization code received.</p>
+                <p>Please go back to Rewin Launcher and try again.</p>
+                <button class="button" onclick="window.close()">Close Window</button>
+            `;
+        }
+    </script>
 </body>
 </html>

@@ -1,0 +1,14 @@
+<!-- Save as https://yourusername.github.io/discord-auth.html -->
+<!DOCTYPE html>
+<html>
+<head><title>Discord Auth</title></head>
+<body>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+        window.location.href = `rewinlauncher://auth/callback?code=${code}`;
+    }
+</script>
+</body>
+</html>
